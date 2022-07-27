@@ -1,0 +1,1 @@
+clang++  -std=c++17 -o main SimpleExample.cpp -L /usr/lib/ -lboost_system -lboost_thread -lpthread
