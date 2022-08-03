@@ -13,6 +13,7 @@ namespace olc
         class server_interface
         {
             public:
+            // Create a server, ready to listen on specified port
                 server_interface(uint16_t port):m_asioAcceptor(m_asioContext, boost::asio::ip::tcp::endpoint(asio::ip::tcp::v4(),port))
                 {
 
@@ -22,11 +23,19 @@ namespace olc
                 {
                     Stop();
                 }
+                // Starts the server!
                 bool Start()
                 {
                     try
                     {
+                        // Issue a task to the asio context - This is important
+					// as it will prime the context with "work", and stop it
+					// from exiting immediately. Since this is a server, we 
+					// want it primed ready to handle clients trying to
+					// connect.
                         WaitForClientConnection();
+
+                        // Launch the asio context in its own thread
 
                         m_threadContext=std::thread([this](){m_asioContext.run();});
                     }
@@ -41,7 +50,7 @@ namespace olc
                     return true;
                     
                 }
-
+                // Stops the server!
                 void Stop()
                 {
                     //Request the context to close
@@ -58,9 +67,13 @@ namespace olc
                 //ASYNC - Instruct asio to wait for connection
                 void WaitForClientConnection()
                 {
+                    // Prime context with an instruction to wait until a socket connects. This
+				// is the purpose of an "acceptor" object. It will provide a unique socket
+				// for each incoming connection attempt
                     m_asioAcceptor.async_accept(
                         [this](std::error_code ec, boost::asio::ip::tcp::socket socket)
                         {
+                            // Triggered by incoming connection request
                             if(!ec)
                             {
                                 std::cout<<"[SERVER] New Connection: "<<socket.remote_endpoint()<<"\n";
@@ -73,6 +86,8 @@ namespace olc
                                     //Connection allowed, so add to container of new connections
                                     m_deqConnections.push_back(std::move(newconn));
 
+                                    // And very important! Issue a task to the connection's
+								// asio context to sit and wait for bytes to arrive!
                                     m_deqConnections.back()->ConnectToClient(nIDCounter++);
 
                                     std::cout<<"["<<m_deqConnections.back()->GetID()<<"] Connection Aproved\n";
@@ -97,7 +112,7 @@ namespace olc
                 }
 
                 //Send a message to a specific client
-                void MessageClient(std::shared_ptr<connection<T>> client, const message<T>& msg, std::shared_ptr<connection<T>> pIgnoreClient=nullptr)
+                void MessageClient(std::shared_ptr<connection<T>> client, const message<T>& msg)
                 {
                     if(client && client->IsConnected())
                     {
@@ -136,8 +151,11 @@ namespace olc
                         m_deqConnections.erase(std::remove(m_deqConnections.begin(),m_deqConnections.end(),nullptr),m_deqConnections.end());
                 }
 
-                void Update(size_t nMaxMessages=-1)
+                void Update(size_t nMaxMessages=-1, bool bWait=false)
                 {
+                    if(bWait) m_qMessagesIn.wait();
+                    // Process as many messages as you can up to the value
+				    // specified
                     size_t nMessageCount=0;
                     while(nMessageCount<nMaxMessages && !m_qMessagesIn.empty())
                     {
