@@ -1,0 +1,1 @@
+clang++ -o main main.cpp linux-kbhit.cpp
