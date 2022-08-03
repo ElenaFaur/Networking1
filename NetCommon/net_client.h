@@ -11,10 +11,8 @@ namespace olc
         template <typename T>
         class client_interface
         {
-            client_interface(): m_socket(m_context)
-            {
-                //Initialise the socket with the io context, so it can do stuff
-            }
+            client_interface()
+            {}
 
             virtual ~client_interface()
             {
@@ -27,7 +25,7 @@ namespace olc
                 //...but needs a thread of its own to execute its work commands
                 std::thread thrContext;
                 //This is the hardware socket that is connected to the server
-                boost::asio::ip::tcp::socket m_socket;
+                //boost::asio::ip::tcp::socket m_socket;
                 //The client has a single instance of a "connection" object, which
                 //handles data transfer
                 std::unique_ptr<connection<T>> m_connection;
@@ -58,7 +56,7 @@ namespace olc
                     }
                     catch(std::exception& e)
                     {
-                        std::cerr<<"Client Exception: " << e.what() << '\n';
+                        std::cerr<<"Client Exception: " << e.what() << "\n";
                         return false;
                     }
                     

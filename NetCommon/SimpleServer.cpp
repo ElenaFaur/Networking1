@@ -51,6 +51,7 @@ class CustomServer : public olc::net::server_interface<CustomMsgTypes>
                     msg<<client->GetID();
                     MessageAllClients(msg,client);
                 }
+                break;
 
             }
         }
@@ -62,7 +63,7 @@ int main()
 
     while(1)
     {
-        server.Update();
+        server.Update(-1,true);
     }
     return 0;
 }
