@@ -70,7 +70,7 @@ namespace olc
                 }
                 bool IsConnected() const
                 {
-                    retrun m_socket.is_open();
+                    return m_socket.is_open();
                 }
             public:
             // ASYNC - Send a message, connections are one-to-one so no need to specifiy
@@ -184,7 +184,7 @@ namespace olc
                             {
                                 // ...it didnt, so we are done with this message. Remove it from 
 								// the outgoing message queue
-                                m_qMessageOut.pop_front();
+                                m_qMessagesOut.pop_front();
 
                                 // If the queue is not empty, there are more messages to send, so
 								// make this happen by issuing the task to send the next header.

@@ -14,7 +14,7 @@ namespace olc
         {
             public:
             // Create a server, ready to listen on specified port
-                server_interface(uint16_t port):m_asioAcceptor(m_asioContext, boost::asio::ip::tcp::endpoint(asio::ip::tcp::v4(),port))
+                server_interface(uint16_t port):m_asioAcceptor(m_asioContext, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(),port))
                 {
 
                 }
@@ -160,7 +160,7 @@ namespace olc
                     while(nMessageCount<nMaxMessages && !m_qMessagesIn.empty())
                     {
                         //Grab the front message
-                        auto msg=m_qMessagesIn.pop_front;
+                        auto msg=m_qMessagesIn.pop_front();
 
                         //Pass to message handler
                         OnMessage(msg.remote,msg.msg);

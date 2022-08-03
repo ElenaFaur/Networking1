@@ -11,6 +11,7 @@ namespace olc
         template <typename T>
         class client_interface
         {
+            public:
             client_interface()
             {}
 
