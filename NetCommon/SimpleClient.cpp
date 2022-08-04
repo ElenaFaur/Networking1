@@ -1,5 +1,11 @@
 #include<iostream>
 #include "olc_net.h"
+#include "/workspaces/Repository/ubuntu_networking/NetCommon/async_keys/linux-kbhit.h"
+
+static void sighandler(int signo)
+{
+    printf("\nSIG\n");
+}
 
 enum class CustomMsgTypes : uint32_t
 {
@@ -38,13 +44,14 @@ int main()
     CustomClient c;
     c.Connect("127.0.0.1",60000);
 
-    bool key[3]={false,false,false};
-    bool old_key[3]={false,false,false};
+    //bool key[3]={false,false,false};
+    //bool old_key[3]={false,false,false};
 
     bool bQuit=false;
+    term_setup(sighandler);
     while(!bQuit)
     {
-        if(GetForegroundWindow()==GetConsoleWindow())
+        /*if(GetForegroundWindow()==GetConsoleWindow())
         {
             key[0]=GetAsyncKeyState('1') & 0x8000;
             key[1]=GetAsyncKeyState('2') & 0x8000;
@@ -56,7 +63,14 @@ int main()
         if(key[2] && !old_key[2]) bQuit=true;
 
         for(int i=0;i<3;i++)
-            old_key[i]=key[i];
+            old_key[i]=key[i];*/
+
+            if (kbhit()) 
+            {
+            if (keydown(UP)) c.PingServer();
+			if (keydown(DOWN)) c.MessageAll();
+            if (keydown(ESC)) bQuit = true;
+            }
         if(c.IsConnected())
         {
             if(!c.Incoming().empty())
@@ -97,6 +111,7 @@ int main()
             bQuit=true;
         }
     }
+    term_restore();
 
     return 0;
 }
