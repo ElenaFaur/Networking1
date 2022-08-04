@@ -12,8 +12,7 @@ namespace olc
         class client_interface
         {
             public:
-            client_interface()
-            {};
+            client_interface(){};
 
             virtual ~client_interface()
             {

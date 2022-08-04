@@ -7,6 +7,10 @@ namespace olc
 {
     namespace net
     {
+        //forward declare (not #included)
+        template<typename T>
+        class server_interface;
+
         template<typename T>
         class connection : public std::enable_shared_from_this<connection<T>>
         {
@@ -24,10 +28,29 @@ namespace olc
                 :m_asioContext(asioContext),m_socket(std::move(socket)),m_qMessagesIn(qIn)
                 {
                     m_nOwnerType=parent;
+
+                    //construct validation check data
+                    if(m_nOwnerType == owner::server){  //if the owner is a server
+
+                        //I'm expected to generate some random data and then send out to the connection
+                        //Connection is Server -> Client, construct random data for the client 
+                        // -- to transform and send back to validation
+                        m_nHandshakeOut = uint64_t(std::chrono::system_clock::now().time_since_epoch().count()); //data to send out
+
+                        //the scrambled version of the data
+                        //pre-calculate the result for checking when the client responds
+                        m_nHandshakeCheck = scramble(m_nHandshakeOut);    
+                    }
+                    else{
+
+                        //Connection is Client -> Server, so we have nothing do define, just waiting for the data to be sent
+                        // -- from the server
+                        m_nHandshakeIn = 0;
+                        m_nHandshakeOut = 0;
+                    }
                 }
 
-                virtual ~connection()
-                {}
+                virtual ~connection(){}
                 // This ID is used system wide - its how clients will understand other clients
 			// exist across the whole system.
                 uint32_t GetID() const
@@ -35,14 +58,22 @@ namespace olc
                     return id;
                 }
             public:
-                void ConnectToClient(uint32_t uid=0)
+                void ConnectToClient(olc::net::server_interface<T>* server, uint32_t uid = 0)
                 {
                     if(m_nOwnerType==owner::server)
                     {
                         if(m_socket.is_open())
                         {
-                            id=uid;
-                            ReadHeader();
+                            id = uid;  //store the id 
+                        //was: ReadHeader();
+
+                        //a client has attempted to connect to server, but we wish the client to first
+                        // -- validate itself, so first write out the handshake data to be validated
+                        WriteValidation();
+
+                        //next, issue a task to sit and wait asynchronously for precisely 
+                        // -- the validation data sent back from the client
+                        ReadValidation(server); 
                         }
                     }
                 }
@@ -57,7 +88,13 @@ namespace olc
                         {
                             if(!ec)
                             {
-                                ReadHeader();
+                               //was:
+                                    // //issue the task to read the header
+                                    // ReadHeader();
+
+                                    //first thing server will do is send packet to be validated
+                                    //so wait for that and respond
+                                    ReadValidation();
                             }
                         }
                         );
@@ -252,6 +289,79 @@ namespace olc
 				// process repeats itself.
                     ReadHeader();
                 }
+
+                //"encrypt" data
+            uint64_t scramble(uint64_t nInput){
+
+                uint64_t out = nInput ^ 0xDEADBEEFC0DECAFE;
+                out = (out & 0xF0F0F0F0F0F0F0) >> 4 | (out & 0x0F0F0F0F0F0F0F) << 4;
+                return out ^ 0xC0DEFACE12345678;
+            }
+
+            //ASYNC - used by both client and server to write validation packet
+            void WriteValidation(){
+
+                boost::asio::async_write(m_socket, boost::asio::buffer(&m_nHandshakeOut, sizeof(uint64_t)), 
+                            [this](std::error_code ec, std::size_t length){
+
+                                if(!ec){
+
+                                    //validation data sent, clients should sit and wait for a response (or a closure)
+                                    if(m_nOwnerType == owner::client){
+                                        
+                                        ReadHeader();
+                                    }
+                                }else{
+                                    m_socket.close();
+                                }
+                            });
+            }
+
+            void ReadValidation(olc::net::server_interface<T>* server = nullptr){
+
+                boost::asio::async_read(m_socket, boost::asio::buffer(&m_nHandshakeIn, sizeof(uint64_t)),
+                            [this, server](std::error_code ec, std::size_t length){
+
+                                if(!ec){
+                                    
+                                    //if we're a server, we're expecting ReadValidation() to read the data that
+                                    // -- has been computed by the client 
+                                    //if we're the client, we're expecting the validation data to be the random data provided
+                                    // -- by the server
+
+                                    if(m_nOwnerType == owner::server){
+                                        //client has provided valid solution, so allow it to connect properly
+                                        if(m_nHandshakeIn == m_nHandshakeCheck){
+                                            
+                                            std::cout << "Client validated" << std::endl;
+                                            server -> OnClientValidated(this -> shared_from_this()); 
+
+                                            //sit waiting to receive data now
+                                            ReadHeader();
+                                        }else{
+                                            //client gave incorrect data, so disconnect
+                                            std::cout << "Client Disconnected (Fail Validation)" << std::endl;
+                                            m_socket.close();
+                                        }
+                                    }
+                                    else{
+                                        //connection to client, so solve puzzle
+                                        m_nHandshakeOut = scramble(m_nHandshakeIn);
+
+                                        //write the result
+                                        WriteValidation();
+                                    }
+
+
+                                }else{
+                                    //some biggerfailure occured
+                                    std::cout << "Client Disconnected (ReadValidation)" << std::endl;
+                                    m_socket.close();
+                                }
+                            });
+            }
+
+
             protected:
                 //Each connection has a unique socket to a remote
                 boost::asio::ip::tcp::socket m_socket;
@@ -273,7 +383,14 @@ namespace olc
 
                 //The "owner" decides how some of the connection behaves
                 owner m_nOwnerType= owner::server;    
-                uint32_t id=0;        
+                uint32_t id=0;  
+
+                //handshake validation
+            uint64_t m_nHandshakeOut = 0; //what the connection will send outwards
+            uint64_t m_nHandshakeIn = 0; //what the connection has received as a result or data to scramble in the first place
+            uint64_t m_nHandshakeCheck = 0; //used by the server to perform the comparison to see if the client is valid or not 
+
+            //effectively, the connection object is the glue       
         };
     }
 }

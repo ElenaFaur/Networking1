@@ -88,7 +88,7 @@ namespace olc
 
                                     // And very important! Issue a task to the connection's
 								// asio context to sit and wait for bytes to arrive!
-                                    m_deqConnections.back()->ConnectToClient(nIDCounter++);
+                                    m_deqConnections.back()->ConnectToClient(this,nIDCounter++);
 
                                     std::cout<<"["<<m_deqConnections.back()->GetID()<<"] Connection Aproved\n";
                                 }
@@ -184,6 +184,12 @@ namespace olc
 
                 //Called when a message arrives
                 virtual void OnMessage(std::shared_ptr<connection<T>> client, message<T>& msg)
+                {
+
+                }
+            public:
+                 //called when a client is validated
+                virtual void OnClientValidated(std::shared_ptr<connection<T>> client)
                 {
 
                 }
