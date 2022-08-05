@@ -1,0 +1,18 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/workspaces/Repository/ubuntu_networking/sqrt.cpp
+math.h
+-
+
+/workspaces/Repository/ubuntu_networking/sqrt_test.cpp
+sqrt.cpp
+/workspaces/Repository/ubuntu_networking/sqrt.cpp
+gtest/gtest.h
+-
+
