@@ -51,7 +51,7 @@ namespace olc
                     
                 }
                 // Stops the server!
-                void Stop()
+                bool Stop()
                 {
                     //Request the context to close
                     m_asioContext.stop();
@@ -62,6 +62,7 @@ namespace olc
 
                     //Inform someone, anybody, if they care...
                     std::cout<<"[SERVER] Stopped!\n";
+                    return true;
                 }
 
                 //ASYNC - Instruct asio to wait for connection
@@ -177,9 +178,9 @@ namespace olc
                 }
 
                 //Called when a client appears to have disconnected
-                virtual void OnClientDisconnect(std::shared_ptr<connection<T>> client)
+                virtual bool OnClientDisconnect(std::shared_ptr<connection<T>> client)
                 {
-
+                    return false;
                 }
 
                 //Called when a message arrives
@@ -196,10 +197,10 @@ namespace olc
             protected:
                 //Thread Safe Queue for incoming message packets
                 tsqueue<owned_message<T>> m_qMessagesIn;
-
+            public:
                 //Container of active validated connections
                 std::deque<std::shared_ptr<connection<T>>> m_deqConnections;
-
+            protected:
                 //Order of declaration is important - it is also the order of initialisation
                 boost::asio::io_context m_asioContext;
                 std::thread m_threadContext;

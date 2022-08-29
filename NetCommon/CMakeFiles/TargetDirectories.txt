@@ -1,0 +1,3 @@
+/workspaces/Repository/ubuntu_networking/NetCommon/CMakeFiles/rebuild_cache.dir
+/workspaces/Repository/ubuntu_networking/NetCommon/CMakeFiles/executeTests.dir
+/workspaces/Repository/ubuntu_networking/NetCommon/CMakeFiles/edit_cache.dir

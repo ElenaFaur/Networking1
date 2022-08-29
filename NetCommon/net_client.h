@@ -28,6 +28,7 @@ namespace olc
                 //boost::asio::ip::tcp::socket m_socket;
                 //The client has a single instance of a "connection" object, which
                 //handles data transfer
+            public:
                 std::unique_ptr<connection<T>> m_connection;
             private:
                 //This is the thread safe queue of incoming messages from server
