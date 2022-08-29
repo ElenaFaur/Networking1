@@ -39,117 +39,143 @@ class CustomClient : public olc::net::client_interface<CustomMsgTypes>
 
 // --- tests:
 
-//starting server check
-TEST(ServerConnectTest, ServerStartCheck){
-
-    CustomServer *servptr = new CustomServer(60000);
-
-    ASSERT_TRUE(servptr -> Start()); 
-
-    servptr -> Stop();
-    delete servptr;
-}
-
-//stopping server check
-TEST(ServerConnectTest, ServerStopCheck){
-
-    CustomServer *servptr = new CustomServer(60000);
-
-    servptr -> Start();
-
-    ASSERT_TRUE(servptr -> Stop());
-    delete servptr;
-}
-
-//checking if client successfully connected to server
-TEST(ClientConnectTest, ClientConnectCheck){
-
-    CustomServer *servptr = new CustomServer(60000);
-    CustomClient *clientptr = new CustomClient;
+/*
+@brief Server perspective
+Checking if the server started successfully
+*/
+TEST(TestServerConnect, ServerStartCheck)
+{
     
-    servptr -> Start();
+    CustomServer *serverpointer = new CustomServer(60000);
+    
+    ASSERT_TRUE(serverpointer -> Start()); 
+
+    serverpointer -> Stop();
+    delete serverpointer;
+}
+
+/*
+@brief Server perspective
+Testing if the server stopped correctly without any failures after it started
+*/
+TEST(TestServerConnect, ServerStopCheck){
+
+    CustomServer *serverpointer = new CustomServer(60000);
+    
+    serverpointer -> Start();
+    
+    ASSERT_TRUE(serverpointer -> Stop());
+    
+    delete serverpointer;
+}
+
+/*
+    @brief Client-server connection
+    Testing a potential client could establish a connection with the running server
+    and checking if the connection was established between the client and the server
+*/
+TEST(TestClientConnect, ClientConnectCheck){
+
+    
+    CustomServer *serverpointer = new CustomServer(60000);
+    
+    CustomClient *client = new CustomClient;
+    
+    serverpointer -> Start();
     std::this_thread::sleep_for(500ms);
 
-    ASSERT_TRUE(clientptr -> Connect("127.0.0.1", 60000));
+    ASSERT_TRUE(client -> Connect("127.0.0.1", 60000)); 
     std::this_thread::sleep_for(500ms);
     
-    ASSERT_TRUE(servptr -> OnClientConnect(servptr -> m_deqConnections.back()));
-    ASSERT_TRUE(clientptr -> IsConnected());
+    ASSERT_TRUE(serverpointer -> OnClientConnect(serverpointer -> m_deqConnections.back()));
+    
+    ASSERT_TRUE(client -> IsConnected());
     
 
-    servptr -> Stop();
+    serverpointer -> Stop();
 
-    delete servptr;
-    delete clientptr;
+    delete serverpointer;
+    delete client;
 }
 
-//checking if a client didn't connect to server
-TEST(ClientConnectTest, ClientNotConnectCheck){
+/*
+    @brief Client-server connection
+    Testing from a client perspective if the server-client connection wasn't yet established
+*/
+TEST(TestClientConnect, ClientNotConnectCheck){
  
-    CustomServer *servptr = new CustomServer(60000);
-    CustomClient *clientptr = new CustomClient;
+    CustomServer *serverpointer = new CustomServer(60000);
+    CustomClient *client = new CustomClient;
 
-    servptr -> Start();
+    serverpointer -> Start();
     std::this_thread::sleep_for(500ms);
 
-    ASSERT_FALSE(clientptr -> IsConnected());
+    ASSERT_FALSE(client -> IsConnected());
 
-    servptr -> Stop();
+    serverpointer -> Stop();
 
-    delete servptr;
-    delete clientptr;
+    delete serverpointer;
+    delete client;
 }
 
-//checking one/first client ID
-TEST(ClientConnectTest, ClientIDCheck){
+/*
+    @brief Client-server relationship
+    Checking if a potential client connected to server has the default ID assigned correctly
+    Every client must have assigned an unique ID starting from 10000 
+    The ID increments by one everytime when a new client connects to server
+*/
+TEST(TestClientConnect, ClientIDCheck){
 
-    CustomServer *servptr = new CustomServer(60000);
-    CustomClient *clientptr = new CustomClient;
+    CustomServer *serverpointer = new CustomServer(60000);
+    CustomClient *client = new CustomClient;
 
-    servptr -> Start();
+    serverpointer -> Start();
     std::this_thread::sleep_for(500ms);
 
-    clientptr -> Connect("127.0.0.1", 60000);
+    client -> Connect("127.0.0.1", 60000);
     std::this_thread::sleep_for(500ms);
 
-    ASSERT_EQ(10000, servptr -> m_deqConnections.back() -> GetID());
-    delete servptr;
-    delete clientptr;
+    ASSERT_EQ(10000, serverpointer -> m_deqConnections.back() -> GetID());
+    delete serverpointer;
+    delete client;
 }
+/*
+    @brief Client-server relationship
+    Testing if multiple clients have assigned the correct ID
+*/
+TEST(TestClientConnect, ClientsIDsCheck){
 
-TEST(ClientConnectTest, ClientsIDsCheck){
+    CustomServer *serverpointer = new CustomServer(60000);
+    CustomClient *client1 = new CustomClient;
+    CustomClient *client2 = new CustomClient;
+    CustomClient *client3 = new CustomClient;
 
-    CustomServer *servptr = new CustomServer(60000);
-    CustomClient *clientptr1 = new CustomClient;
-    CustomClient *clientptr2 = new CustomClient;
-    CustomClient *clientptr3 = new CustomClient;
-
-    servptr -> Start();
+    serverpointer -> Start();
     std::this_thread::sleep_for(500ms);
 
-    clientptr1 -> Connect("127.0.0.1", 60000);
+    client1 -> Connect("127.0.0.1", 60000);
     std::this_thread::sleep_for(500ms);
 
-    clientptr2 -> Connect("127.0.0.1", 60000);
+    client2 -> Connect("127.0.0.1", 60000);
     std::this_thread::sleep_for(500ms);
 
-    clientptr3 -> Connect("127.0.0.1", 60000);
+    client3 -> Connect("127.0.0.1", 60000);
     std::this_thread::sleep_for(500ms);
 
     uint32_t IDcounter = 10000;
 
-    for(auto client : servptr -> m_deqConnections){
+    for(auto client : serverpointer -> m_deqConnections){
 
         ASSERT_EQ(IDcounter, client -> GetID());
         IDcounter++;
     }
 
-    servptr -> Stop();
+    serverpointer -> Stop();
 
-    delete servptr;
-    delete clientptr1;
-    delete clientptr2;
-    delete clientptr3;
+    delete serverpointer;
+    delete client1;
+    delete client2;
+    delete client3;
 }
 
 int main(int argc, char **argv) 
