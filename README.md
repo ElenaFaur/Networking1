@@ -9,7 +9,7 @@ This folder contains the linux container, which was created to simplify things f
 
 ## NetCommon
 
-This folder contains the Client-server project, accomplished with boost::asio. It's a a networking framework project using interfaces for both client and the server, using Boost::Asio cross-platform C++ Library.
+This folder contains the Client-server project, accomplished with boost::asio. It's  a networking framework project using interfaces for both client and the server, using boost::asio cross-platform C++ Library.
 
 #### Lauching the aplication
 
