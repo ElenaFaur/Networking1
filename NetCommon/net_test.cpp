@@ -58,7 +58,8 @@ TEST(TestServerConnect, ServerStartCheck)
 @brief Server perspective
 Testing if the server stopped correctly without any failures after it started
 */
-TEST(TestServerConnect, ServerStopCheck){
+TEST(TestServerConnect, ServerStopCheck)
+{
 
     CustomServer *serverpointer = new CustomServer(60000);
     
@@ -74,9 +75,9 @@ TEST(TestServerConnect, ServerStopCheck){
     Testing a potential client could establish a connection with the running server
     and checking if the connection was established between the client and the server
 */
-TEST(TestClientConnect, ClientConnectCheck){
+TEST(TestClientConnect, ClientConnectCheck)
+{
 
-    
     CustomServer *serverpointer = new CustomServer(60000);
     
     CustomClient *client = new CustomClient;
@@ -102,7 +103,8 @@ TEST(TestClientConnect, ClientConnectCheck){
     @brief Client-server connection
     Testing from a client perspective if the server-client connection wasn't yet established
 */
-TEST(TestClientConnect, ClientNotConnectCheck){
+TEST(TestClientConnect, ClientNotConnectCheck)
+{
  
     CustomServer *serverpointer = new CustomServer(60000);
     CustomClient *client = new CustomClient;
@@ -124,7 +126,8 @@ TEST(TestClientConnect, ClientNotConnectCheck){
     Every client must have assigned an unique ID starting from 10000 
     The ID increments by one everytime when a new client connects to server
 */
-TEST(TestClientConnect, ClientIDCheck){
+TEST(TestClientConnect, ClientIDCheck)
+{
 
     CustomServer *serverpointer = new CustomServer(60000);
     CustomClient *client = new CustomClient;
@@ -143,7 +146,8 @@ TEST(TestClientConnect, ClientIDCheck){
     @brief Client-server relationship
     Testing if multiple clients have assigned the correct ID
 */
-TEST(TestClientConnect, ClientsIDsCheck){
+TEST(TestClientConnect, ClientsIDsCheck)
+{
 
     CustomServer *serverpointer = new CustomServer(60000);
     CustomClient *client1 = new CustomClient;

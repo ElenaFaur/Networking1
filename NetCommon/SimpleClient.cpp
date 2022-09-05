@@ -1,43 +1,10 @@
-#include<iostream>
-#include "olc_net.h"
+#include "custom_client.h"
 #include "/workspaces/Repository/ubuntu_networking/NetCommon/async_keys/linux-kbhit.h"
 
 static void sighandler(int signo)
 {
     printf("\nSIG\n");
 }
-
-enum class CustomMsgTypes : uint32_t
-{
-    ServerAccept,
-    ServerDeny,
-    ServerPing,
-    MessageAll,
-    ServerMessage
-};
-
-class CustomClient : public olc::net::client_interface<CustomMsgTypes>
-{
-   public:
-        void PingServer()
-        {
-            olc::net::message<CustomMsgTypes> msg;
-            msg.header.id=CustomMsgTypes::ServerPing;
-
-            //Caution with this...
-            std::chrono::system_clock::time_point timeNow=std::chrono::system_clock::now();
-
-            msg<<timeNow;
-            Send(msg);
-        }
-
-        void MessageAll()
-        {
-            olc::net::message<CustomMsgTypes> msg;
-            msg.header.id=CustomMsgTypes::MessageAll;
-            Send(msg);
-        }
-};
 
 int main()
 {
